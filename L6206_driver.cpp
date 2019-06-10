@@ -128,11 +128,12 @@ void L6206::SetSpeedMotor(int32_t s)
     }
     else if(s<=-ZERO_THRESHOLD)
     {
-	    moteur = map(abs(s),0,ZeroValue ,0,PWM_RES); //*sign(y-x);
+	    moteur = map(s,minValue,ZeroValue ,0,(int32_t)PWM_RES*MaxOutputSpeedCoef/100); //*sign(y-x);
 	    // Speed = -(int32_t)(moteur*MaxOutputSpeedCoef)/100;
     	// moteur=PWM_RES-(LUT_MOTEUR[moteur]*MaxOutputSpeedCoef)/100;
-    	moteur=PWM_RES-(moteur*MaxOutputSpeedCoef)/100;
-    	Speed=(int32_t)moteur-PWM_RES;
+    	//moteur=PWM_RES-(moteur*MaxOutputSpeedCoef)/100;
+//    	Speed=(int32_t)moteur-PWM_RES;
+    	Speed=moteur;
 	    if(this->dir!=BACKWARD){
 	    	this->dir = BACKWARD;
     		digitalWrite(this->dirPin,HIGH);	
