@@ -97,7 +97,11 @@ void L6206::SetSpeed(int speedValue)
 	{
 		PreviousRefreshTime = millis();
 		sumSamples/=nbSamples;
+		// Serial.print(sumSamples);
+		// Serial.print(",");
 		int32_t s = constrain(sumSamples,minValue,maxValue);	
+		// Serial.print(s);
+		// Serial.print(",");
 		nbSamples=0;
 		sumSamples=0;
 		// remap value in pwm space
@@ -106,6 +110,7 @@ void L6206::SetSpeed(int speedValue)
 		// Serial.print(sumSamples);
 		// Serial.print("\tcentred speed=");
 		// Serial.print(s);
+		// Serial.print(",");
 		SetSpeedMotor(s);
 	}
 }
@@ -116,9 +121,11 @@ void L6206::SetSpeedMotor(int32_t s)
 
     if(s>=ZERO_THRESHOLD)
     {
-	    moteur = map(s,0,maxValue-ZeroValue ,0,PWM_RES); //*sign(y-x);
+	    moteur = map(s,ZERO_THRESHOLD,maxValue-ZeroValue ,0,PWM_RES); //*sign(y-x);
 	    //moteur=(LUT_MOTEUR[moteur]*MaxOutputSpeedCoef) / 100;
-		moteur=(moteur*MaxOutputSpeedCoef) / 100;
+			moteur=(moteur*MaxOutputSpeedCoef) / 100;
+			// Serial.print(moteur);
+			// Serial.print(",");
 	    if(this->dir!=FORWARD){
 	    	this->dir=FORWARD;
     		digitalWrite(this->dirPin,LOW);
@@ -128,10 +135,13 @@ void L6206::SetSpeedMotor(int32_t s)
     }
     else if(s<=-ZERO_THRESHOLD)
     {
-	    moteur = map(s,minValue-ZeroValue,0 ,0,(int32_t)PWM_RES*MaxOutputSpeedCoef/100); //*sign(y-x);
+	    moteur = map(s,-ZeroValue,-ZERO_THRESHOLD ,PWM_RES,0); //*sign(y-x);
 	    // Speed = -(int32_t)(moteur*MaxOutputSpeedCoef)/100;
     	// moteur=PWM_RES-(LUT_MOTEUR[moteur]*MaxOutputSpeedCoef)/100;
-    	//moteur=PWM_RES-(moteur*MaxOutputSpeedCoef)/100;
+			// Serial.print(moteur);
+			// Serial.print(",");
+    	moteur=(moteur*MaxOutputSpeedCoef)/100;
+    	moteur = PWM_RES-moteur;
 //    	Speed=(int32_t)moteur-PWM_RES;
     	Speed=moteur;
 	    if(this->dir!=BACKWARD){
@@ -154,6 +164,7 @@ void L6206::SetSpeedMotor(int32_t s)
 	// Serial.print(";");
 	// Serial.println(moteur);
 	// Serial.println(moteur);
+		//Serial.println(moteur);
     analogWrite(this->pwmPin,moteur);
 }
 
