@@ -135,7 +135,7 @@ void L6206::SetSpeedMotor(int32_t s)
     }
     else if(s<=-ZERO_THRESHOLD)
     {
-	    moteur = map(s,-ZeroValue,-ZERO_THRESHOLD ,PWM_RES,0); //*sign(y-x);
+	    moteur = map(s,minValue+ZeroValue,-ZERO_THRESHOLD ,PWM_RES,0); //*sign(y-x);
 	    // Speed = -(int32_t)(moteur*MaxOutputSpeedCoef)/100;
     	// moteur=PWM_RES-(LUT_MOTEUR[moteur]*MaxOutputSpeedCoef)/100;
 			// Serial.print(moteur);
