@@ -10,6 +10,19 @@
 #define PWM_RES		255
 #define ZERO_THRESHOLD 	20
 #define MIDDLE(minV,maxV)	((minV+maxV)/2)
+
+// #define DEBUG
+
+#ifdef DEBUG
+# define SERIALINIT(baudrate) {Serial.begin(baudrate);}
+# define PRINTLN(a) {Serial.println(a);}
+# define PRINT2LN(a,b) {Serial.print(a);Serial.print("=");Serial.println(b);}
+#else
+# define SERIALINIT(baudrate) {}
+# define PRINTLN(a) {}
+# define PRINT2LN(a,b) {}
+#endif
+
 L6206::L6206(uint8_t enaPin, uint8_t pwmPin, uint8_t dirPin)
 {
 	this->enaPin  = enaPin;
@@ -22,8 +35,8 @@ L6206::L6206(uint8_t enaPin, uint8_t pwmPin, uint8_t dirPin)
 
 void L6206::begin(uint32_t Period)
 {
-//	Serial.begin(9600);
-	// Serial.print("initializing ");
+	// SERIALINIT(115200);
+	PRINTLN("initializing ");
 	// Serial.print(this->enaPin);
 	pinMode(this->enaPin,OUTPUT);
 	// Serial.print("\t");
@@ -47,10 +60,8 @@ void L6206::SetInputLimit(int32_t minValue, int32_t maxValue)
 	this->minValue = minValue;
 	this->maxValue = maxValue;
 	SetReference(MIDDLE(minValue,maxValue));
-//	Serial.print("Set Min Value=");
-//	Serial.println(minValue);
-//	Serial.print("Set Max Value=");
-//	Serial.println(maxValue);
+	PRINT2LN("Set Min Value",minValue);
+	PRINT2LN("Set Max Value",maxValue);
 }
 /* set the value for a zero output. it calibrates gain and offset
 * ZeoValue should be set between min and max value
@@ -59,8 +70,7 @@ void L6206::SetReference(int32_t ZeroValue)
 {
 	if(!_initialized) begin(RefreshPeriod);
 	this->ZeroValue = constrain(ZeroValue,minValue,maxValue);
-//	Serial.print("Set Zero Value=");
-//	Serial.println(ZeroValue);
+	PRINT2LN("Set zero Value",ZeroValue);
 }
 
 /* Set Limit to output speed expressed as percent of PWM_RES
@@ -117,15 +127,14 @@ void L6206::SetSpeed(int speedValue)
 
 void L6206::SetSpeedMotor(int32_t s)
 {
-    uint32_t moteur;
+    int32_t moteur;
 
     if(s>=ZERO_THRESHOLD)
     {
 	    moteur = map(s,ZERO_THRESHOLD,maxValue-ZeroValue ,0,PWM_RES); //*sign(y-x);
 	    //moteur=(LUT_MOTEUR[moteur]*MaxOutputSpeedCoef) / 100;
 			moteur=(moteur*MaxOutputSpeedCoef) / 100;
-			// Serial.print(moteur);
-			// Serial.print(",");
+			PRINT2LN("SetSpeedMotor::moteur forward ",moteur);
 	    if(this->dir!=FORWARD){
 	    	this->dir=FORWARD;
     		digitalWrite(this->dirPin,LOW);
@@ -135,7 +144,8 @@ void L6206::SetSpeedMotor(int32_t s)
     }
     else if(s<=-ZERO_THRESHOLD)
     {
-	    moteur = map(s,minValue+ZeroValue,-ZERO_THRESHOLD ,PWM_RES,0); //*sign(y-x);
+	    moteur = map(s,minValue-ZeroValue,-ZERO_THRESHOLD ,0,PWM_RES);
+			moteur = constrain( moteur  , 0 , PWM_RES); //*sign(y-x);
 	    // Speed = -(int32_t)(moteur*MaxOutputSpeedCoef)/100;
     	// moteur=PWM_RES-(LUT_MOTEUR[moteur]*MaxOutputSpeedCoef)/100;
 			// Serial.print(moteur);
@@ -148,6 +158,7 @@ void L6206::SetSpeedMotor(int32_t s)
 	    	this->dir = BACKWARD;
     		digitalWrite(this->dirPin,HIGH);	
     	}
+			PRINT2LN("SetSpeedMotor::moteur reverse ",moteur);
 		// Serial.print("\trev m=");
     }
     else // moteur à l'arrêt)
@@ -158,6 +169,7 @@ void L6206::SetSpeedMotor(int32_t s)
 	    }
     	moteur=0;
     	Speed=0;
+			PRINTLN("SetSpeedMotor::moteur arret ");
 		// Serial.print("\tstop m=");
     }
     // moteur=LUT_MOTEUR[moteur];
